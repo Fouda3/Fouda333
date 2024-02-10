@@ -1,0 +1,21 @@
+from openpyxl import load_workbook
+from openpyxl import Workbook
+
+# Load the source workbook
+source_wb = load_workbook('source.xlsx')
+source_ws = source_wb.active
+
+# Load the destination workbook
+dest_wb = load_workbook('destination.xlsx')
+dest_ws = dest_wb.active
+
+# Define the range to copy from source worksheet
+copy_range = source_ws['A1':'C10']
+
+# Iterate over the source range and copy values to destination worksheet
+for row in copy_range:
+    for cell in row:
+        dest_ws[cell.coordinate].value = cell.value
+
+# Save the changes to the destination workbook
+dest_wb.save('destination.xlsx')

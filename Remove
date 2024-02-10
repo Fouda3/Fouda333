@@ -1,0 +1,23 @@
+from openpyxl import load_workbook
+
+def remove_first_letter(cell_value):
+    # Split the cell value into words
+    words = cell_value.split()
+    # Remove the first letter from each word
+    modified_words = [word[1:] for word in words]
+    # Join the modified words back into a string
+    modified_value = ' '.join(modified_words)
+    return modified_value
+
+# Load the workbook
+workbook = load_workbook('your_excel_file.xlsx')
+sheet = workbook.active
+
+# Iterate over all cells in the worksheet
+for row in sheet.iter_rows():
+    for cell in row:
+        if cell.value:
+            cell.value = remove_first_letter(str(cell.value))
+
+# Save the modified workbook
+workbook.save('modified_excel_file.xlsx')

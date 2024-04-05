@@ -1,0 +1,28 @@
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
+
+def sum_cells_by_color(file_path, sheet_name, color_hex):
+    # Load the workbook
+    wb = load_workbook(file_path)
+    sheet = wb[sheet_name]
+
+    # Initialize sum
+    total_sum = 0
+
+    # Iterate through all cells in the specified sheet
+    for row in sheet.iter_rows():
+        for cell in row:
+            # Check if the cell has the specified fill color
+            if cell.fill.start_color.rgb == color_hex:
+                # Add value of the cell to total sum
+                total_sum += cell.value
+
+    return total_sum
+
+# Example usage
+file_path = 'example.xlsx'  # Path to Excel file
+sheet_name = 'Sheet1'  # Name of the sheet containing data
+color_hex = 'FF0000'  # Hex color code for the cells you want to sum (e.g., red)
+
+total_sum = sum_cells_by_color(file_path, sheet_name, color_hex)
+print("Total sum of cells with color #FF0000:", total_sum)

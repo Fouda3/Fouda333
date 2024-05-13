@@ -1,0 +1,45 @@
+import openpyxl
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+def send_email(subject, message, to_email):
+    # Setup SMTP server
+    smtp_server = 'your_smtp_server'
+    smtp_port = 587  # Change it according to your SMTP server configuration
+    sender_email = 'your_email@example.com'
+    password = 'your_password'
+
+    # Create a MIME object
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+
+    # Attach message to the email
+    msg.attach(MIMEText(message, 'plain'))
+
+    # Connect to SMTP server
+    server = smtplib.SMTP(smtp_server, smtp_port)
+    server.starttls()
+    server.login(sender_email, password)
+
+    # Send email
+    server.sendmail(sender_email, to_email, msg.as_string())
+    server.quit()
+
+def send_emails_from_excel(excel_file):
+    # Load Excel workbook
+    workbook = openpyxl.load_workbook(excel_file)
+    sheet = workbook.active
+
+    # Iterate through each row and send email
+    for row in sheet.iter_rows(min_row=2, values_only=True):  # Assuming data starts from row 2
+        name, email, subject, message = row
+        send_email(subject, message, email)
+
+    print("Emails sent successfully!")
+
+# Usage
+excel_file = "your_excel_file.xlsx"
+send_emails_from_excel(excel_file)

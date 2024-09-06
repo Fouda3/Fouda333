@@ -1,0 +1,11 @@
+class Expert:
+    def __init__(self, name, expertise):
+        self.name = name
+        self.expertise = expertise
+
+    def show_expertise(self):
+        print(f"{self.name} is an experienced professional in {self.expertise}.")
+
+if __name__ == "__main__":
+    e = Expert("Your Name", "your expertise")
+    e.show_expertise()

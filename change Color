@@ -1,0 +1,17 @@
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill
+
+# Create a new workbook and select the active worksheet
+wb = Workbook()
+ws = wb.active
+
+# Define a fill color
+fill_color = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
+
+# Apply the fill color to a range of cells
+for row in ws.iter_rows(min_row=1, max_row=10, min_col=1, max_col=10):
+    for cell in row:
+        cell.fill = fill_color
+
+# Save the workbook
+wb.save("colored_workbook.xlsx")

@@ -1,0 +1,46 @@
+import pandas as pd
+
+def summarize_csv(input_file, output_file, columns_to_summarize):
+    try:
+        # Load the CSV file
+        df = pd.read_csv(input_file)
+
+        # Check if the specified columns exist
+        for column in columns_to_summarize:
+            if column not in df.columns:
+                raise ValueError(f"Column '{column}' not found in the CSV file.")
+
+        # Calculate totals and averages
+        summary = {
+            "Column": [],
+            "Total": [],
+            "Average": []
+        }
+
+        for column in columns_to_summarize:
+            total = df[column].sum()
+            average = df[column].mean()
+
+            summary["Column"].append(column)
+            summary["Total"].append(total)
+            summary["Average"].append(average)
+
+        # Create a summary DataFrame
+        summary_df = pd.DataFrame(summary)
+
+        # Save the summary to a new file
+        summary_df.to_csv(output_file, index=False)
+
+        print(f"Summary saved to {output_file}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# Specify the input and output file names
+input_file = "input.csv"  # Replace with your CSV file name
+output_file = "summary.csv"
+
+# Specify the columns to summarize
+columns_to_summarize = ["Sales", "Revenue"]  # Replace with your column names
+
+# Call the function
+summarize_csv(input_file, output_file, columns_to_summarize)

@@ -1,0 +1,56 @@
+import pandas as pd
+
+def transform_csv(input_file, output_file, transformations):
+    try:
+        # Load the CSV file
+        df = pd.read_csv(input_file)
+
+        # Apply transformations
+        for transformation in transformations:
+            action = transformation.get("action")
+            column = transformation.get("column")
+            new_column = transformation.get("new_column", column)
+            value = transformation.get("value")
+            
+            if action == "add":
+                # Add a new column with a default value or based on a calculation
+                if callable(value):
+                    df[new_column] = df.apply(value, axis=1)
+                else:
+                    df[new_column] = value
+            elif action == "modify":
+                # Modify an existing column based on a calculation or value
+                if column not in df.columns:
+                    raise ValueError(f"Column '{column}' not found in the CSV file.")
+                if callable(value):
+                    df[column] = df.apply(value, axis=1)
+                else:
+                    df[column] = value
+            elif action == "delete":
+                # Delete a column
+                if column not in df.columns:
+                    raise ValueError(f"Column '{column}' not found in the CSV file.")
+                df.drop(columns=[column], inplace=True)
+            else:
+                raise ValueError(f"Unknown action '{action}'")
+
+        # Save the transformed DataFrame to a new file
+        df.to_csv(output_file, index=False)
+
+        print(f"Transformed data saved to {output_file}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# Specify the input and output file names
+input_file = "input.csv"  # Replace with your CSV file name
+output_file = "transformed.csv"
+
+# Specify the transformations
+transformations = [
+    {"action": "add", "column": "Discount", "value": lambda row: row["Sales"] * 0.1},  # Add a Discount column
+    {"action": "modify", "column": "Revenue", "value": lambda row: row["Revenue"] * 1.05},  # Increase Revenue by 5%
+    {"action": "delete", "column": "OldColumn"}  # Delete a column named OldColumn
+]
+
+# Call the function
+transform_csv(input_file, output_file, transformations)

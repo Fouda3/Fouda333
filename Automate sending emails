@@ -1,0 +1,32 @@
+import win32com.client as win32
+import pandas as pd
+
+# Load Excel file
+excel_file = "email_data.xlsx"  # Update with your file path
+df = pd.read_excel(excel_file)
+
+# Initialize Outlook
+outlook = win32.Dispatch("Outlook.Application")
+
+# Loop through Excel data and send emails
+for index, row in df.iterrows():
+    recipient = row["Email"]
+    subject = row["Subject"]
+    body = row["Body"]
+
+    # Create new email
+    mail = outlook.CreateItem(0)
+    mail.To = recipient
+    mail.Subject = subject
+    mail.Body = body
+
+    # Attach a file (Optional)
+    if "Attachment" in df.columns and pd.notna(row["Attachment"]):
+        mail.Attachments.Add(row["Attachment"])
+
+    # Send email
+    mail.Send()
+
+    print(f"Email sent to {recipient}")
+
+print("All emails sent successfully!")

@@ -1,0 +1,47 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load sales data from Excel
+file_path = "sales_data.xlsx"  # Update with your file path
+df = pd.read_excel(file_path)
+
+# Display basic information
+print("Dataset Overview:")
+print(df.info())
+print("\nSummary Statistics:")
+print(df.describe())
+
+# Sales Trend Over Time
+df["Date"] = pd.to_datetime(df["Date"])  # Ensure Date column is in datetime format
+df.set_index("Date", inplace=True)
+sales_trend = df["Sales"].resample("M").sum()  # Aggregate sales by month
+
+# Plot Sales Trend
+plt.figure(figsize=(10, 5))
+plt.plot(sales_trend, marker="o", linestyle="-", color="b")
+plt.title("Monthly Sales Trend")
+plt.xlabel("Month")
+plt.ylabel("Total Sales")
+plt.grid()
+plt.show()
+
+# Top 5 Best-Selling Products
+top_products = df.groupby("Product")["Sales"].sum().sort_values(ascending=False).head(5)
+plt.figure(figsize=(8, 4))
+sns.barplot(x=top_products.index, y=top_products.values, palette="viridis")
+plt.title("Top 5 Best-Selling Products")
+plt.xlabel("Product")
+plt.ylabel("Total Sales")
+plt.xticks(rotation=45)
+plt.show()
+
+# Sales Performance by Salesperson
+sales_by_person = df.groupby("Salesperson")["Sales"].sum().sort_values(ascending=False)
+plt.figure(figsize=(8, 4))
+sns.barplot(x=sales_by_person.index, y=sales_by_person.values, palette="coolwarm")
+plt.title("Sales Performance by Salesperson")
+plt.xlabel("Salesperson")
+plt.ylabel("Total Sales")
+plt.xticks(rotation=45)
+plt.show()

@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head>
+    <title>Workout at Home</title>
+</head>
+<body>
+    <h1>Welcome to Your Home Workout</h1>
+    <p>Select a category to begin:</p>
+    <ul>
+        {% for category in workouts %}
+            <li><a href="/workout/{{ category }}">{{ category }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

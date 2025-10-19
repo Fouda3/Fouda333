@@ -1,0 +1,94 @@
+# train.py
+import os
+import argparse
+from datasets import load_dataset, Dataset
+from transformers import (
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    DataCollatorForLanguageModeling,
+    Trainer,
+    TrainingArguments,
+)
+from utils import read_text_file, chunk_text
+import math
+
+def prepare_tokenized_dataset(tokenizer, train_path, valid_path, block_size):
+    # Read raw texts
+    train_text = read_text_file(train_path)
+    valid_text = read_text_file(valid_path)
+
+    # Tokenize and chunk into blocks
+    train_chunks = chunk_text(tokenizer, train_text, block_size)
+    valid_chunks = chunk_text(tokenizer, valid_text, block_size)
+
+    train_ds = Dataset.from_dict({"input_ids": train_chunks})
+    valid_ds = Dataset.from_dict({"input_ids": valid_chunks})
+    return train_ds, valid_ds
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train_file", type=str, default="data/train.txt")
+    parser.add_argument("--valid_file", type=str, default="data/valid.txt")
+    parser.add_argument("--model_name", type=str, default="gpt2")
+    parser.add_argument("--output_dir", type=str, default="outputs/gpt2-finetuned")
+    parser.add_argument("--block_size", type=int, default=512)
+    parser.add_argument("--per_device_train_batch_size", type=int, default=2)
+    parser.add_argument("--per_device_eval_batch_size", type=int, default=2)
+    parser.add_argument("--num_train_epochs", type=int, default=3)
+    parser.add_argument("--learning_rate", type=float, default=5e-5)
+    parser.add_argument("--save_steps", type=int, default=1000)
+    parser.add_argument("--logging_steps", type=int, default=100)
+    parser.add_argument("--fp16", action="store_true")
+    parser.add_argument("--gradient_accumulation_steps", type=int, default=8)
+    parser.add_argument("--push_to_hub", action="store_true")
+    args = parser.parse_args()
+
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+    # make sure tokenizer has an EOS if needed
+    if tokenizer.eos_token is None:
+        tokenizer.add_special_tokens({"eos_token": ""})
+    model = AutoModelForCausalLM.from_pretrained(args.model_name)
+
+    # If tokenizer extended, resize
+    model.resize_token_embeddings(len(tokenizer))
+
+    train_ds, valid_ds = prepare_tokenized_dataset(tokenizer, args.train_file, args.valid_file, args.block_size)
+
+    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+
+    training_args = TrainingArguments(
+        output_dir=args.output_dir,
+        overwrite_output_dir=True,
+        evaluation_strategy="steps",
+        eval_steps=500,
+        logging_steps=args.logging_steps,
+        save_steps=args.save_steps,
+        per_device_train_batch_size=args.per_device_train_batch_size,
+        per_device_eval_batch_size=args.per_device_eval_batch_size,
+        num_train_epochs=args.num_train_epochs,
+        learning_rate=args.learning_rate,
+        weight_decay=0.01,
+        warmup_steps=200,
+        fp16=args.fp16,
+        gradient_accumulation_steps=args.gradient_accumulation_steps,
+        save_total_limit=3,
+        load_best_model_at_end=True,
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
+        push_to_hub=args.push_to_hub,
+    )
+
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_ds,
+        eval_dataset=valid_ds,
+        data_collator=data_collator,
+    )
+
+    trainer.train()
+    trainer.save_model(args.output_dir)
+    tokenizer.save_pretrained(args.output_dir)
+
+if __name__ == "__main__":
+    main()
